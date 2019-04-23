@@ -5,7 +5,7 @@
 
 #### Usage:
 
-1. [Download the plugin from here](https://github.com/zr0n/Joyztick/releases/download/v1.0/Joyztick.zip)
+1. [Download the plugin from here](https://github.com/zr0n/Joyztick/releases/download/v1.1/Joyztick.zip)
 2. Create a folder called **Plugins** in your project (if it was not done before)
 3. Extract the .zip you download into **Plugins** Folder
 4. In UE4 navigate to **Edit > Plugins**
