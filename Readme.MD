@@ -1,9 +1,9 @@
 # Joyztick
 
-## Plugin that allows you to use the old school generic usb joystick in Unreal Engine 4.
+### Plugin that allows you to use the old school generic usb joystick in Unreal Engine 4.
 
 
-### Usage:
+#### Usage:
 
 1. [Download the plugin from here](https://github.com/zr0n/Joyztick/releases/download/v1.0/Joyztick.zip)
 2. Create a folder called **Plugins** in your project (if it was not done before)
