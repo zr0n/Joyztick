@@ -2,6 +2,9 @@
 
 ### Plugin that allows you to use the old school generic usb joystick in Unreal Engine 4.
 
+##### Current Limitations (Feel free to contribute):
+- Windows Only
+- 1 Joystick
 
 #### Usage:
 
@@ -25,9 +28,9 @@
 https://youtu.be/
 
 
-
 ### ChangeLog
 
 
++ *1.3* - Add Input (A/Dea)ctivation
 + *1.2* - Garbage Collection and Avoid Crashing
 + *1.1* - First Version
