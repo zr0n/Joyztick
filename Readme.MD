@@ -23,3 +23,11 @@
 
 
 https://youtu.be/
+
+
+
+### ChangeLog
+
+
++ *1.2* - Garbage Collection and Avoid Crashing
++ *1.1* - First Version
