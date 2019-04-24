@@ -9,12 +9,16 @@
 #define JOYSTICK_BUTTON_MSG 0x3a2
 
 
+DEFINE_LOG_CATEGORY(LogJoyztick);
+
+//Forward Declaration (avoid linker bullsh1t)
 HWND UGenericJoystickComponent::hWnd;
 HINSTANCE UGenericJoystickComponent::hInstance;
-bool UGenericJoystickComponent::bInitialized;
 TArray<UGenericJoystickComponent*> UGenericJoystickComponent::RegisteredComponents;
 TMap<int, int> UGenericJoystickComponent::ButtonsMap;
 TMap<int, int> UGenericJoystickComponent::ButtonsReleaseMap;
+bool UGenericJoystickComponent::bCapturingJoystick;
+//End Forward Declarations
 
 // Sets default values for this component's properties
 UGenericJoystickComponent::UGenericJoystickComponent()
@@ -34,7 +38,7 @@ void UGenericJoystickComponent::BeginPlay()
 
 	RegisteredComponents.AddUnique(this);
 
-	if (!WasInitialized())
+	if (!IsInitialized())
 	{
 		CreateWindowClass();
 		InitButtonsMap();
@@ -42,13 +46,18 @@ void UGenericJoystickComponent::BeginPlay()
 	
 }
 
+void UGenericJoystickComponent::OnComponentDestroyed(bool bDestroyingHierarchy)
+{
+	Super::OnComponentDestroyed(bDestroyingHierarchy);
+	RegisteredComponents.Remove(this);
+	FreeResources();
+}
+
 void UGenericJoystickComponent::CreateWindowClass()
 {
 	hInstance = GetModuleHandle(NULL);
 	RegisterWindowClass();
-	bInitialized = InitInstance();
-	if (!bInitialized)
-		return;
+	InitInstance();
 }
 
 void UGenericJoystickComponent::InitButtonsMap()
@@ -90,7 +99,15 @@ void UGenericJoystickComponent::InitButtonsMap()
 
 LRESULT CALLBACK UGenericJoystickComponent::WndProcGlobal(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	for (auto Joystick : UGenericJoystickComponent::GetRegisteredComponents())
+	
+	//We don`t need to listen messages when there is no active components
+	if (RegisteredComponents.Num() == 0 && message != WM_DESTROY)
+	{
+		PostMessageW(hWnd, WM_DESTROY, 0, 0);
+		return NULL;
+	}
+
+	for (auto Joystick : RegisteredComponents)
 	{
 		Joystick->WndProc(hWnd, message, wParam, lParam);
 	}
@@ -98,7 +115,10 @@ LRESULT CALLBACK UGenericJoystickComponent::WndProcGlobal(HWND hWnd, UINT messag
 	{
 		case WM_CREATE:
 		{
-			if (joySetCapture(
+			if (bCapturingJoystick)
+				break;
+
+			if (auto error = joySetCapture(
 				hWnd,
 				JOYSTICKID1,
 				(UINT)20,
@@ -111,6 +131,10 @@ LRESULT CALLBACK UGenericJoystickComponent::WndProcGlobal(HWND hWnd, UINT messag
 					(LPCWSTR)L"Error",
 					MB_ICONERROR
 				);
+			}
+			else
+			{
+				bCapturingJoystick = true;
 			}
 			break;
 		}
@@ -146,6 +170,19 @@ bool UGenericJoystickComponent::InitInstance()
 bool UGenericJoystickComponent::IsNotZero(FVector2D inVector)
 {
 	return !(inVector.X == .0f && inVector.Y == .0f);
+}
+
+UGenericJoystickComponent::~UGenericJoystickComponent()
+{
+
+	
+}
+
+bool UGenericJoystickComponent::IsInitialized()
+{
+	
+	WNDCLASS wc;
+	return GetClassInfo(hInstance, WINDOW_CLASS_NAME, &wc);
 }
 
 LRESULT CALLBACK UGenericJoystickComponent::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -196,7 +233,7 @@ LRESULT CALLBACK UGenericJoystickComponent::WndProc(HWND hWnd, UINT message, WPA
 ATOM UGenericJoystickComponent::RegisterWindowClass()
 {
 	WNDCLASS wc = {0};
-	if (GetClassInfo(hInstance, WINDOW_CLASS_NAME, &wc)) //Was registered already
+	if (IsInitialized()) //Was registered already
 	{
 		return NULL;
 	}
@@ -258,6 +295,11 @@ FVector2D UGenericJoystickComponent::NormalizeJoyInput(FVector2D Input)
 
 }
 
+void UGenericJoystickComponent::UnregisterAllComponents()
+{
+	RegisteredComponents.Empty();
+}
+
 void UGenericJoystickComponent::CheckReleasedButtons()
 {
 	TArray<int> ButtonsReleased;
@@ -271,5 +313,15 @@ void UGenericJoystickComponent::CheckReleasedButtons()
 	if (OnKeyRelease.IsBound())
 		for(auto button : ButtonsReleased)
 			OnKeyRelease.Broadcast(button);
+}
+
+void UGenericJoystickComponent::FreeResources()
+{
+	if (IsInitialized() && RegisteredComponents.Num() == 0)
+	{
+		UnregisterClassW(WINDOW_CLASS_NAME, hInstance);
+		UE_LOG(LogJoyztick, Log, TEXT("Freeing Joyztick Resources"));
+	}
+	
 }
 

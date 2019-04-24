@@ -11,6 +11,7 @@
 #include "GenericJoystickComponent.generated.h"
 
 
+DECLARE_LOG_CATEGORY_EXTERN(LogJoyztick, Log, All);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class JOYZTICK_API UGenericJoystickComponent : public UActorComponent
@@ -20,9 +21,10 @@ class JOYZTICK_API UGenericJoystickComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UGenericJoystickComponent();
+	~UGenericJoystickComponent();
 
 	UFUNCTION(BlueprintPure)
-		FORCEINLINE bool WasInitialized() const { return bInitialized; };
+		static bool IsInitialized();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic Joystick Config")
 		bool bTriggerAxisMoveWhenAxisEqualsZero = false;
@@ -46,10 +48,12 @@ public:
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-
+	virtual void OnComponentDestroyed(bool bDestroyingHierarchy) override;
+	
 	void CreateWindowClass();
 	void InitButtonsMap();
 	static LRESULT CALLBACK WndProcGlobal(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -74,6 +78,9 @@ public:
 	UFUNCTION(BlueprintPure)
 		static FVector2D NormalizeJoyInput(FVector2D Input);
 
+	UFUNCTION(BlueprintCallable)
+		void UnregisterAllComponents();
+
 
 	void CheckReleasedButtons();
 
@@ -84,12 +91,17 @@ protected:
 protected:
 	static HWND hWnd;
 	static HINSTANCE hInstance;
-	static bool bInitialized;
 	static TArray<UGenericJoystickComponent*> RegisteredComponents;
 	static TMap<int, int> ButtonsMap;
 	static TMap<int, int> ButtonsReleaseMap;
+	static bool bCapturingJoystick;
 
 	TArray<int> ButtonsPressedLastFrame;
 	TArray<int> ButtonsPressedThisFrame;
+
+
+private:
+	//This is Triggered only when the first component is destroyed
+	void FreeResources();
 
 };
