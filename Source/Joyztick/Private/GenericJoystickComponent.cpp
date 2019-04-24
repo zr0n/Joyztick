@@ -338,7 +338,8 @@ void UGenericJoystickComponent::SetJoyztickInputStatus(bool bEnabled, AActor* Ow
 
 	auto joyztickComp = Owner->FindComponentByClass<UGenericJoystickComponent>();
 	
-	bEnabled ? joyztickComp->EnableJoyzInput() : joyztickComp->DisableJoyzInput();
+	if(IsValid(joyztickComp))
+		bEnabled ? joyztickComp->EnableJoyzInput() : joyztickComp->DisableJoyzInput();
 }
 
 void UGenericJoystickComponent::CheckReleasedButtons()
