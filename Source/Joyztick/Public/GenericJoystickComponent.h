@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic Joystick Config")
 		bool bTriggerAxisMoveWhenAxisEqualsZero = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generic Joystick Config")
+		bool bJoyztickInputEnabled;
+
 //Events
 public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FJoystickKeyChange, int, Button);
@@ -82,6 +85,26 @@ public:
 		void UnregisterAllComponents();
 
 
+	UFUNCTION(BlueprintCallable, Category = "Joyzticks")
+		void EnableJoyzInput();
+
+	UFUNCTION(BlueprintCallable, Category = "Joyzticks")
+		void DisableJoyzInput();
+
+
+	UFUNCTION(BlueprintCallable, Category = "Joyzticks", meta=(WorldContext=Target))
+		static void EnableJoyztickInput(AActor* Target);
+
+	UFUNCTION(BlueprintCallable, Category = "Joyzticks", meta = (WorldContext = Target))
+		static void DisableJoyztickInput(AActor* Target);
+
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE bool IsJoyztickInputEnabled() const { return bJoyztickInputEnabled;  };
+
+	static void SetJoyztickInputStatus(bool bEnabled, AActor* Owner);
+
+
+
 	void CheckReleasedButtons();
 
 protected:
@@ -98,6 +121,7 @@ protected:
 
 	TArray<int> ButtonsPressedLastFrame;
 	TArray<int> ButtonsPressedThisFrame;
+
 
 
 private:

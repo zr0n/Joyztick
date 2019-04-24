@@ -1,8 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "GenericJoystickComponent.h"
+
+#include "GameFramework/Actor.h"
+#include "Components/InputComponent.h"
+
 #include <joystickapi.h>
+
+
 #define WINDOW_CLASS_NAME L"UE4GenericJoystick"
 #define AXISLOW 0x0000
 #define AXISHIGH 0xffff
@@ -187,6 +191,10 @@ bool UGenericJoystickComponent::IsInitialized()
 
 LRESULT CALLBACK UGenericJoystickComponent::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (!bJoyztickInputEnabled)
+		return NULL;
+
+
 	switch (message)
 	{
 		case JOYSTICK_BUTTON_MSG:
@@ -298,6 +306,38 @@ FVector2D UGenericJoystickComponent::NormalizeJoyInput(FVector2D Input)
 void UGenericJoystickComponent::UnregisterAllComponents()
 {
 	RegisteredComponents.Empty();
+}
+
+void UGenericJoystickComponent::EnableJoyzInput()
+{
+	bJoyztickInputEnabled = true;
+}
+
+void UGenericJoystickComponent::DisableJoyzInput()
+{
+	bJoyztickInputEnabled = false;
+}
+
+void UGenericJoystickComponent::EnableJoyztickInput(AActor* Target)
+{
+	SetJoyztickInputStatus(true, Target);
+
+}
+
+void UGenericJoystickComponent::DisableJoyztickInput(AActor* Target)
+{
+	SetJoyztickInputStatus(false, Target);
+
+}
+
+void UGenericJoystickComponent::SetJoyztickInputStatus(bool bEnabled, AActor* Owner)
+{
+	if (!IsValid(Owner))
+		return;
+
+	auto joyztickComp = Owner->FindComponentByClass<UGenericJoystickComponent>();
+	
+	bEnabled ? joyztickComp->EnableJoyzInput() : joyztickComp->DisableJoyzInput();
 }
 
 void UGenericJoystickComponent::CheckReleasedButtons()
